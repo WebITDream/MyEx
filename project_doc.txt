@@ -1,9 +1,0 @@
-#FAD607 - yellow
-
-#25E000 - green
-
-#05F5ED - aqua
-
-#0707DE - blue
-
-#FA07E2 - pink

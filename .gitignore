@@ -1,0 +1,42 @@
+# Ignore Node.js related files and directories
+node_modules/
+npm-debug.log
+yarn-error.log
+*.env
+
+# Ignore build and binary files
+dist/
+build/
+out/
+*.exe
+*.o
+*.obj
+
+# Ignore macOS specific files
+.DS_Store
+
+# Ignore editor and IDE files
+.vscode/
+.idea/
+
+# Ignore log files
+*.log
+*.svg
+
+# Ignore package-lock.json for npm
+package-lock.json
+
+# Ignore yarn.lock for Yarn
+yarn.lock
+
+# Ignore any sensitive or private data files
+config.json
+secrets.json
+
+# Ignore OS generated files
+Thumbs.db
+
+# Ignore temporary files and backup files
+*.tmp
+*.bak
+*.swp

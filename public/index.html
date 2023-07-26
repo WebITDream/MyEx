@@ -19,7 +19,7 @@
             <div class="container-fluid nav-color" style="padding: 10px;">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active bg-success rounded text-light" aria-current="page" href="#"><i class="fa-solid fa-house" style="color: #ffffff;"></i> HOME</a>
+                        <a class="nav-link active bg-success rounded text-light" aria-current="page" href="/"><i class="fa-solid fa-house" style="color: #ffffff;"></i> HOME</a>
                     </li>
                 </ul>
                 <div style="flex: 1"></div>
@@ -27,8 +27,14 @@
                     <li class="nav-item">
                         <a class="nav-link bg-success rounded text-light" href="#"><i class="fa-solid fa-comments"></i> FAQ</a>
                     </li>
-                    <li class="nav-item ms-2">
+                    <li class="nav-item ms-2" style="display: none;">
                         <a class="nav-link bg-danger rounded text-light" href="#"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT Daniel</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="nav-link bg-success rounded text-light" href="./login"><i class="fa-solid fa-user"></i> LOGIN</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                      <a class="nav-link bg-success rounded text-light" href="./register"><i class="fa-solid fa-user"></i> Register</a>
                     </li>
                 </ul>
             </div>
@@ -71,6 +77,38 @@
                   <h4>Total: <span class="total-price">0</span>€</h4>
                   <button class="btn btn-primary check-out">Check-out</button>
                   <button class="btn btn-danger remove-from-cart">Remove</button>
+                </div>
+                <div class="finish" style="display: none;">
+                  <form action="/finish-order" method="POST">
+                    <div class="mb-3">
+                      <label for="email" class="form-label">Email</label>
+                      <input type="email" class="form-control" id="address" name="email" aria-describedby="emailHelp">
+                      <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="address" class="form-label">Address (Country, City, Street, Number)</label>
+                      <input type="address" class="form-control" id="address" name="address" aria-describedby="addressHelp">
+                      <div id="addressHelp" class="form-text">We'll never share your address with anyone else.</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="username" class="form-label">Username</label>
+                      <input type="username" class="form-control" id="username" name="username">
+                    </div>
+                    <div class="form-check-inline">
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="bitcoin" value="bitcoin" checked>
+                      <label class="form-check-label" for="bitcoin">
+                        Bitcoin
+                      </label>
+                    </div>
+                    <div class="form-check-inline">
+                      <input class="form-check-input" type="radio" name="paymentMethod" value="etherium" id="Etherium">
+                      <label class="form-check-label" for="Etherium">
+                        Etherium
+                      </label>
+                    </div>
+                    <br><br>
+                    <button class="btn btn-primary" type="submit" value="SUBMIT" id="submit_basket">Submit</button>
+                  </form>
                 </div>
               </div>
             </div>

@@ -15,16 +15,16 @@ app.use(
         saveUninitialized: false
     })
 )
-app.use(express.static('public'));
 app.use(express.json());
 
 app.use(bodyParser.urlencoded({ extended: false }));
+
 /////////////////// Routes ///////////////////
 // Register
 app.use('/', registerPage);
 // Login
 app.use('/', loginPage);
-
+app.use(express.static('public'));
 
 let total_price = 0;
 let cart = [];
@@ -46,9 +46,24 @@ function generateRandomOrderId(length) {
     return result;
 }
 
+// Assuming you're using Express.js on the server-side
+app.get('/check-session', (req, res) => {
+    if (req.session.loggedin) {
+        res.json({ sessionActive: true, sessionId: req.session.id });
+    } else {
+        res.json({ sessionActive: false });
+    }
+});
+
+app.post('/logout', (req, res) => {
+    req.session.destroy();
+    res.json({ message: "Logged out" });
+})
+
 app.post('/', (req, res) => {
     const { name, prodId, price, amount } = req.body;
-    
+
+
     db.query("SELECT * FROM products WHERE prodId = ?", [prodId], (err, result) => {
         if (err) {
             console.log(err);
@@ -111,12 +126,12 @@ app.post('/finish-order', (req, res) => {
     });
 });
 
-
 app.get('/final', hasPlacedOrder, (req, res) => {
     // Display the order_id for the user
     const order_id = req.session.order_id;
     res.send(`Order completed<br> Order ID: ${order_id}`);
 });
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);

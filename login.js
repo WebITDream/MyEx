@@ -17,7 +17,12 @@ router.use(
 router.use(bodyParser.urlencoded({ extended: false }));
 
 //  de facut cand esti logat sa ai buton de logout + sa-ti apara username-ul in navbar etc
-  
+
+function generateHash(password) {
+    return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+}
+
+
 router.post('/login', (req, res) => {
     const { email, password } = req.body;
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
@@ -30,9 +35,10 @@ router.post('/login', (req, res) => {
                 if (err) {
                     console.log(err);
                 }else if(result == true){
+                    req.session.id = generateHash(password)
                     req.session.email = email;
                     req.session.loggedin = true;
-                    res.json({ success: true, message: "Login successful" });
+                    res.redirect('/?session=' + req.session.id)
                 }else{
                     res.json({ success: false, message: "Wrong email or password" });
                 }

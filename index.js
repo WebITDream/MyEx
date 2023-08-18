@@ -3,6 +3,7 @@ const db = require('./db');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const registerPage = require('./register.js');
+const dashboardPage = require('./dashboard.js');
 const loginPage = require('./login.js');
 const bcrypt = require('bcrypt');
 const app = express();
@@ -24,6 +25,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/', registerPage);
 // Login
 app.use('/', loginPage);
+// Dashboard
+app.use('/', dashboardPage);
 app.use(express.static('public'));
 
 let total_price = 0;
@@ -49,7 +52,7 @@ function generateRandomOrderId(length) {
 // Assuming you're using Express.js on the server-side
 app.get('/check-session', (req, res) => {
     if (req.session.loggedin) {
-        res.json({ sessionActive: true, sessionId: req.session.id });
+        res.json({ sessionActive: true, sessionId: req.session.id, role: req.session.role, username: req.session.username});
     } else {
         res.json({ sessionActive: false });
     }
@@ -61,32 +64,72 @@ app.post('/logout', (req, res) => {
 })
 
 app.post('/', (req, res) => {
-    const { name, prodId, price, amount } = req.body;
-
-
+    let { name, prodId, price, amount } = req.body;
+    // to int amount
+    amount = parseInt(amount);
     db.query("SELECT * FROM products WHERE prodId = ?", [prodId], (err, result) => {
         if (err) {
             console.log(err);
+            res.status(500).json({ message: "Internal server error" });
+            return;
         } else {
-            if (result[0].price != price) {
-                res.json({ message: "Price has been changed, please try again" });
+            if (result.length === 0) {
+                res.status(404).json({ message: "Product not found" });
+                return;
+            }
+            if (result[0].price != price || result[0].prodName != name) {
+                res.json({ message: "Price or name has been changed, please try again" });
                 return;
             } else if (result[0].stock < amount) {
                 res.json({ message: "Not enough items in stock" });
                 return;
             }
-            
+
             if (!req.session.cart) {
                 req.session.cart = [];
             }
-            
-            const total_price = result[0].price * amount;
-            req.session.cart.push({ name, amount, total_price });
-            
+
+            // Check if the product already exists in the cart
+            const existingItemIndex = req.session.cart.findIndex(item => item.prodId === prodId);
+            if (existingItemIndex !== -1) {
+                // If the product exists, update its quantity and total price
+                req.session.cart[existingItemIndex].amount += amount;
+                req.session.cart[existingItemIndex].total_price += result[0].price * amount;
+            } else {
+                // If the product doesn't exist, add a new item to the cart
+                const newItem = {
+                    name,
+                    prodId,
+                    price,
+                    amount,
+                    total_price: result[0].price * amount
+                };
+                req.session.cart.push(newItem);
+            }
+
+            // Calculate the new total price after the update or addition
+            req.session.hasOrderUnfinished = true;
+            total_price = req.session.cart.reduce((total, item) => total + item.total_price, 0);
+
             res.json({ message: "Product added to cart", totalPrice: total_price });
         }
     });
 });
+
+
+app.get('/check-order', (req, res) => {
+    if (req.session.hasOrderUnfinished) {
+        // Order has been placed, serve the order details
+        total_price = 0;
+        req.session.cart = [];
+        req.session.hasOrderUnfinished = false;
+        res.json({ message: "Order placed"});
+    } else {
+        // No order has been placed
+        res.json({ message: "No order placed" });
+    }
+});
+
 
 
 app.post('/finish-order', (req, res) => {
@@ -107,8 +150,9 @@ app.post('/finish-order', (req, res) => {
     const cartJsonString = JSON.stringify(cart);
 
     const order_id = generateRandomOrderId(10); // You can adjust the length as needed
+    const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-    db.query("INSERT INTO orders (username, email, address, payment, products, order_id) VALUES (?, ?, ?, ?, ?, ?)", [username, email, address, payment, cartJsonString, order_id], (err, result) => {
+    db.query("INSERT INTO orders (username, email, address, payment, products, order_id, date) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, email, address, payment, cartJsonString, order_id, date], (err, result) => {
         if (err) {
             console.log(err);
         } else {
@@ -125,6 +169,16 @@ app.post('/finish-order', (req, res) => {
         }
     });
 });
+
+app.get('/populateProds', (req, res) => {
+    db.query("SELECT * FROM products", (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json({ success: true, products: result });
+        }
+    })
+})
 
 app.get('/final', hasPlacedOrder, (req, res) => {
     // Display the order_id for the user

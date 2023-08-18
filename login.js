@@ -31,13 +31,17 @@ router.post('/login', (req, res) => {
         }else if(result.length == 0){
             res.json({ success: false, message: "Email does not exist" });
         }else{
+            const role = result[0].role;
+            const username = result[0].username;
             bcrypt.compare(password, result[0].password, (err, result) => {
                 if (err) {
                     console.log(err);
                 }else if(result == true){
                     req.session.id = generateHash(password)
+                    req.session.username = username;
                     req.session.email = email;
                     req.session.loggedin = true;
+                    req.session.role = role;
                     res.redirect('/?session=' + req.session.id)
                 }else{
                     res.json({ success: false, message: "Wrong email or password" });
